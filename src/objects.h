@@ -10,7 +10,7 @@ namespace Objects {
     const int MAX_TEMPLATES = 32;
     const int MAX_INSTANCES = 128;
     const int MAX_OBJECT_INSTANCES = 128;
-    const int MAX_TOTAL_TRIANGLES = 32768;
+    const int MAX_TOTAL_TRIANGLES = 65536;
 
     struct Attribute {
         char key[32];

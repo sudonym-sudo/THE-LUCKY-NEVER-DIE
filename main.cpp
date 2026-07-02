@@ -7,6 +7,7 @@
 #include "src/physics.h"
 #include "src/objects.h"
 #include "src/debug.h"
+#include "src/skybox.h"
 
 Debug dbg;
 World world;
@@ -16,7 +17,7 @@ Texture2D asphaltTex;
 
 Camera3D camera = {0};
 float mouseSensitivity = 0.15f;
-bool debug = true;
+bool debug = false;
 Vector2 windowSize = {1280, 720};
 
 void init() {
@@ -26,7 +27,7 @@ void init() {
 	SetTextureFilter(uiFont.texture, TEXTURE_FILTER_BILINEAR);
 	player.visual.armModel = LoadModel("Assets/Arms.obj");
 
-	player.position = (Vector3){0.0f, 0.0f, 4.0f};
+	player.position = (Vector3){0.0f, 120.0f, 4.0f};
 	player.UpdateAABB();
 
 	camera.position = (Vector3){player.position.x, player.position.y + player.collision.height, player.position.z};
@@ -42,12 +43,29 @@ void init() {
 
 	dbg.Log("engine initialized [LOG]");
 
-	asphaltTex = LoadTexture("objects/Map/MAP.png");
+	Skybox::Load("Assets/Skybox.png");
 
+	asphaltTex = LoadTexture("objects/Map/Map_Texture.png");
+
+	Model probeModel = LoadModel("objects/Map/Map.obj");
+	BoundingBox probeAABB = GetModelBoundingBox(probeModel);
+	UnloadModel(probeModel);
+	float tileSizeX = probeAABB.max.x - probeAABB.min.x;
+	float tileSizeZ = probeAABB.max.z - probeAABB.min.z;
+
+	const int MAP_GRID = 10;
 	int mapId = Objects::Create("Map");
-	int mapBody = Objects::Spawn(mapId, {0.0f, 0.0f, 0.0f});
-	Objects::registry.bodies[mapBody].model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = asphaltTex;
-	dbg.Log("spawned Map [LOG]");
+	for (int gx = 0; gx < MAP_GRID; gx++) {
+		for (int gz = 0; gz < MAP_GRID; gz++) {
+			Vector3 pos = {
+				(gx - (MAP_GRID - 1) / 2.0f) * tileSizeX,
+				0.0f,
+				(gz - (MAP_GRID - 1) / 2.0f) * tileSizeZ};
+			int mapBody = Objects::Spawn(mapId, pos);
+			Objects::registry.bodies[mapBody].model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = asphaltTex;
+		}
+	}
+	dbg.Log("spawned %d map tiles [LOG]", MAP_GRID * MAP_GRID);
 
 	int catId = Objects::Create("Cat");
 	for (int i = 0; i < 5; i++) {
@@ -94,6 +112,7 @@ int main(void) {
 
 		// ---- BOTTOM LAYER ----
 		BeginMode3D(camera);
+			Skybox::Draw();
 			for (int i = 0; i < Objects::registry.bodyCount; i++) {
 					Objects::registry.bodies[i].draw();
 					if (debug) {
@@ -129,6 +148,7 @@ int main(void) {
 	// ------------------- CLEANUP -------------------
 	UnloadFont(uiFont);
 	UnloadTexture(asphaltTex);
+	Skybox::Unload();
 	UnloadModel(player.visual.armModel);
 	Objects::UnloadAll();
 	CloseWindow();

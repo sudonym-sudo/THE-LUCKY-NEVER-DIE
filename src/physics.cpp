@@ -13,8 +13,8 @@ void applyGravity(float deltaTime, Player &player, World &world) {
 }
 
 void floorCheck(Player &player) {
-	if (player.position.y <= 0.0f) {
-		player.position.y = 0.0f;
+	if (player.position.y <= -120.0f) {
+		player.position.y = -120.0f;
 		player.collision.grounded = true;
 		if (player.movement.velocity.y < 0)
 			player.movement.velocity.y = 0;
