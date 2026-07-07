@@ -17,6 +17,7 @@ public:
     struct Movement {
         Vector3 velocity = {0.0f, 0.0f, 0.0f};
         float speed = 50.0f;
+        float maxSpeed = 50.0f;
         float acceleration = 320.0f;
         float friction = 3.5f;
         float bufferTime = 0.2f;
@@ -31,6 +32,8 @@ public:
         StaticBody *bodies[16];
         int bodyCount = 0;
         bool grounded = false;
+        bool wasGrounded = false;
+        float groundTimer = 0.0f;
     } collision;
 
     struct Visuals {
@@ -43,6 +46,9 @@ public:
     } visual;
 
     Vector3 position = {0.0f, 0.0f, 0.0f};
+    Vector3 forward = {0.0f, 0.0f, 0.0f};
+    float yaw = 0.0f;
+    float pitch = 0.0f;
 
 private:
     bool isValidItemId(int itemId);

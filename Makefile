@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -Wextra -Isrc -Iraylib/src
+CXXFLAGS = -std=c++20 -Wall -Wextra -Isrc -Iraylib/src -MMD -MP
 UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
   LDFLAGS = -Lraylib/build/raylib -lraylib -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
@@ -9,6 +9,7 @@ endif
 
 SRC = main.cpp src/debug.cpp src/game.cpp src/input.cpp src/objects.cpp src/physics.cpp src/player.cpp src/skybox.cpp
 OBJ = $(SRC:.cpp=.o)
+DEP = $(OBJ:.o=.d)
 TARGET = main
 
 all: $(TARGET)
@@ -19,5 +20,7 @@ $(TARGET): $(OBJ)
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+-include $(DEP)
+
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(OBJ) $(DEP) $(TARGET)

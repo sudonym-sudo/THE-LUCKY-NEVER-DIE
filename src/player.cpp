@@ -14,20 +14,19 @@ void Player::UpdateAABB() {
 }
 
 void Player::UpdateModelOrientation(Model *model, Camera3D camera) {
-    Vector3 dir = Vector3Subtract(camera.target, camera.position);
-    dir = Vector3Normalize(dir);
+    Vector3 dir = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
 
-    float yaw = atan2f(dir.x, dir.z);
+    yaw = atan2f(dir.x, dir.z);
 
     float horizontalDist = sqrtf(dir.x * dir.x + dir.z * dir.z);
-    float pitch = -atan2f(dir.y, horizontalDist);
+    pitch = -atan2f(dir.y, horizontalDist);
 
     Matrix rotation = MatrixMultiply(MatrixRotateX(pitch), MatrixRotateY(yaw));
     model->transform = rotation;
 }
 
 void Player::DrawArms(Camera3D camera) {
-    Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
+    forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
     Vector3 right = Vector3Normalize(Vector3CrossProduct((Vector3){0, 1, 0}, forward));
 
     Vector3 baseOffset = Vector3Add(Vector3Scale(forward, visual.armConfig.dist),

@@ -1,18 +1,19 @@
 #include "physics.h"
 #include "objects.h"
+#include "player.h"
 #include "raymath.h"
 #include <math.h>
 
-void applyFriction(float deltaTime, Player &player) {
+static void applyFriction(float deltaTime, Player &player) {
 	player.movement.velocity.x *= (1.0f - player.movement.friction * deltaTime);
 	player.movement.velocity.z *= (1.0f - player.movement.friction * deltaTime);
 }
 
-void applyGravity(float deltaTime, Player &player, World &world) {
+static void applyGravity(float deltaTime, Player &player, World &world) {
 	player.movement.velocity.y -= world.gravity * deltaTime;
 }
 
-void floorCheck(Player &player) {
+static void floorCheck(Player &player) {
 	if (player.position.y <= -120.0f) {
 		player.position.y = -120.0f;
 		player.collision.grounded = true;
@@ -21,28 +22,20 @@ void floorCheck(Player &player) {
 	}
 }
 
-void speedCheck(Player &player) {
-	float currentSpeed = sqrtf(player.movement.velocity.x * player.movement.velocity.x + player.movement.velocity.z * player.movement.velocity.z);
-	if (currentSpeed > player.movement.speed) {
-		player.movement.velocity.x = (player.movement.velocity.x / currentSpeed) * player.movement.speed;
-		player.movement.velocity.z = (player.movement.velocity.z / currentSpeed) * player.movement.speed;
-	}
-}
-
-void applyJump(Player &player) {
+static void applyJump(Player &player) {
 	if (player.movement.bufferTimer > 0 && player.collision.grounded) {
 		player.movement.velocity.y = 55.0f;
 		player.movement.bufferTimer = 0;
 	}
 }
 
-void bufferCountdown(float deltaTime, Player &player) {
+static void bufferCountdown(float deltaTime, Player &player) {
 	if (player.movement.bufferTimer > 0) {
 		player.movement.bufferTimer -= deltaTime;
 	}
 }
 
-void getCollidingBodies(Player &player, StaticBody allBodies[], int count) {
+static void getCollidingBodies(Player &player, StaticBody allBodies[], int count) {
 	player.collision.bodyCount = 0;
 	for (int i = 0; i < count; i++) {
 		if (CheckCollisionBoxes(player.collision.aabb, allBodies[i].aabb)) {
@@ -52,6 +45,20 @@ void getCollidingBodies(Player &player, StaticBody allBodies[], int count) {
 		}
 	}
 }
+
+static float boost = 0.0f;
+static const float BOOST_MAX = 10.0f;
+static const float ANGLE_MAX = 90.0f;
+static const float ANGLE_MIN = -ANGLE_MAX;
+
+static void updateBoost(float deltaTime, Player &player) {
+    boost += fmaxf(0.0f, ( (4.0f * BOOST_MAX) / (ANGLE_MAX - ANGLE_MIN) ) * ( (fabsf(player.pitch) * RAD2DEG) - ( (ANGLE_MIN + ANGLE_MAX) / 2.0f) ) * deltaTime);
+}
+
+float getBoost() {
+    return boost;
+}
+
 
 static const float SLOPE_FLOOR_Y = 0.85f;
 static const float SLOPE_WALL_Y  = 0.30f;
@@ -118,41 +125,6 @@ static void resolveBodyTriangles(Player &player, StaticBody &body, float gravity
 	}
 }
 
-void resolveCollision(Player &player, StaticBody &body) {
-	float overlapX = fmin(player.collision.aabb.max.x, body.aabb.max.x) - fmax(player.collision.aabb.min.x, body.aabb.min.x);
-	float overlapY = fmin(player.collision.aabb.max.y, body.aabb.max.y) - fmax(player.collision.aabb.min.y, body.aabb.min.y);
-	float overlapZ = fmin(player.collision.aabb.max.z, body.aabb.max.z) - fmax(player.collision.aabb.min.z, body.aabb.min.z);
-
-	if (overlapX < overlapY && overlapX < overlapZ) {
-		if (player.collision.aabb.min.x < body.aabb.min.x) {
-			player.position.x -= overlapX;
-		} else {
-			player.position.x += overlapX;
-		}
-		player.movement.velocity.x = 0;
-	} else if (overlapZ < overlapX && overlapZ < overlapY) {
-		if (player.collision.aabb.min.z < body.aabb.min.z) {
-			player.position.z -= overlapZ;
-		} else {
-			player.position.z += overlapZ;
-		}
-		player.movement.velocity.z = 0;
-	} else {
-		if (player.collision.aabb.min.y < body.aabb.min.y) {
-			player.position.y -= overlapY;
-			if (player.movement.velocity.y > 0)
-				player.movement.velocity.y = 0;
-		} else {
-			player.position.y += overlapY;
-			if (player.movement.velocity.y < 0)
-				player.movement.velocity.y = 0;
-			player.collision.grounded = true;
-		}
-	}
-
-	player.UpdateAABB();
-}
-
 int physicsProcess(float deltaTime, Player &player, World &world, Camera3D &camera) {
 	player.collision.grounded = false;
 
@@ -160,11 +132,10 @@ int physicsProcess(float deltaTime, Player &player, World &world, Camera3D &came
 	applyGravity(deltaTime, player, world);
 
 	player.position.x += player.movement.velocity.x * deltaTime;
-	player.position.y += player.movement.velocity.y * deltaTime;
 	player.position.z += player.movement.velocity.z * deltaTime;
+	player.position.y += player.movement.velocity.y * deltaTime;
 
 	floorCheck(player);
-	speedCheck(player);
 
 	player.UpdateAABB();
 
@@ -177,6 +148,28 @@ int physicsProcess(float deltaTime, Player &player, World &world, Camera3D &came
 			resolveBodyTriangles(player, *player.collision.bodies[i], world.gravity, deltaTime);
 		}
 	}
+
+	if (!player.collision.wasGrounded && player.collision.grounded) {
+		float hSpeed = sqrtf(player.movement.velocity.x * player.movement.velocity.x + player.movement.velocity.z * player.movement.velocity.z);
+		if (hSpeed > 0.001f) {
+			player.movement.velocity.x += boost * (player.movement.velocity.x / hSpeed);
+			player.movement.velocity.z += boost * (player.movement.velocity.z / hSpeed);
+			player.movement.maxSpeed += boost;
+		}
+		boost = 0.0f;
+		player.collision.groundTimer = 0.0f;
+	}
+
+	if (player.collision.grounded) {
+		player.collision.groundTimer += deltaTime;
+		if (player.collision.groundTimer > 0.5f) {
+			player.movement.maxSpeed = player.movement.speed;
+		}
+	} else {
+		updateBoost(deltaTime, player);
+	}
+
+	player.collision.wasGrounded = player.collision.grounded;
 
 	applyJump(player);
 	bufferCountdown(deltaTime, player);

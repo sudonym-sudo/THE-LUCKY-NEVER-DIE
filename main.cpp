@@ -67,18 +67,18 @@ void init() {
 	}
 	dbg.Log("spawned %d map tiles [LOG]", MAP_GRID * MAP_GRID);
 
-	int catId = Objects::Create("Cat");
-	for (int i = 0; i < 5; i++) {
-		Objects::Spawn(catId,
-			{(float)GetRandomValue(-20, 20), 0.0f, (float)GetRandomValue(-20, 20)},
-			{0.1f, 0.1f, 0.1f}, (float)GetRandomValue(0, 360));
-	}
-	dbg.Log("%d cat(s) spawned [LOG]", 5);
+	// int catId = Objects::Create("Cat");
+	// for (int i = 0; i < 5; i++) {
+	// 	Objects::Spawn(catId,
+	// 		{(float)GetRandomValue(-20, 20), 0.0f, (float)GetRandomValue(-20, 20)},
+	// 		{0.1f, 0.1f, 0.1f}, (float)GetRandomValue(0, 360));
+	// }
+	// dbg.Log("%d cat(s) spawned [LOG]", 5);
 
-	int deagle = Objects::Create("Deagle");
-	Objects::SetAttr(deagle, "ammo", "24");
-	Objects::Spawn(deagle, {2.0f, 0.5f, 0.0f}, {0.4f, 0.4f, 0.4f});
-	dbg.Log("spawned Deagle (id=%d) [LOG]", deagle);
+	// int deagle = Objects::Create("Deagle");
+	// Objects::SetAttr(deagle, "ammo", "24");
+	// Objects::Spawn(deagle, {2.0f, 0.5f, 0.0f}, {0.4f, 0.4f, 0.4f});
+	// dbg.Log("spawned Deagle (id=%d) [LOG]", deagle);
 }
 
 int main(void) {
@@ -103,8 +103,8 @@ int main(void) {
 		bool colliding = player.collision.bodyCount > 0;
 
 		float speed = Vector2Length((Vector2){player.movement.velocity.x, player.movement.velocity.z});
-		float targetFov = 60.0f + (speed * 1.5f);
-		camera.fovy = Lerp(camera.fovy, targetFov, 5.0f * deltaTime);
+		float targetFov = 60.0f + 20.0f * log1pf(speed / 15.0f);
+		camera.fovy = Lerp(camera.fovy, targetFov, 1.0f * deltaTime);
 
 		// ------------------- DRAWING -------------------
 		BeginDrawing();
@@ -134,6 +134,14 @@ int main(void) {
 		EndMode3D();
 
 		// ------------------- UI -------------------
+
+		dbg.Clear();
+		dbg.Log("pitch: %.2f", player.pitch * RAD2DEG);
+		dbg.Log("yaw: %.2f", player.yaw * RAD2DEG);
+		dbg.Log("boost: %.2f", getBoost());
+		dbg.Log("speed: %.2f", speed);
+		dbg.Log("max: %.2f", player.movement.maxSpeed);
+
 		if (colliding) {
 			DrawTextEx(uiFont, "COLLISION DETECTED", (Vector2){10, 10}, 32, 1, RED);
 		} else {

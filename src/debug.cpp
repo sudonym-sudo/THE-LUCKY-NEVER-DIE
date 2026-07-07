@@ -22,6 +22,11 @@ void Debug::Log(const char *fmt, ...)
 	messages[0][MSG_LEN - 1] = '\0';
 }
 
+void Debug::Clear()
+{
+	count = 0;
+}
+
 void Debug::Draw(Font font)
 {
 	int fontSize = 28;

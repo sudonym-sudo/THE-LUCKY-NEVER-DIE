@@ -1,4 +1,4 @@
- #ifndef OBJECTS_H
+#ifndef OBJECTS_H
 #define OBJECTS_H
 
 #include <cstring>

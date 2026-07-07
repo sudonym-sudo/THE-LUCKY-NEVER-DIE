@@ -4,6 +4,7 @@ main.exe
 
 # Objects
 *.o
+*.d
 
 # Libraries
 raylib/

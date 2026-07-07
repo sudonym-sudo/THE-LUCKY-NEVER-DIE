@@ -15,6 +15,7 @@ public:
 	Debug();
 
 	void Log(const char *fmt, ...);
+	void Clear();
 	void Draw(Font font);
 };
 
