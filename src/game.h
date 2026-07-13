@@ -19,6 +19,7 @@ struct StaticBody {
     int triOffset;
     int triCount;
     Color tint = WHITE;
+    int instanceId = 0;
 
     void UpdateAABB();
     void ExtractTriangles(Objects::ObjectRegistry &reg);

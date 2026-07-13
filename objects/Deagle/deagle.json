@@ -4,5 +4,6 @@
   "ammo": "9",
   "reloadTime": "2.0",
   "damage": "10",
-  "fireRate": "0.6"
+  "fireRate": "0.6",
+  "scale": "0.4,0.4,0.4"
 }

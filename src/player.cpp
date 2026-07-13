@@ -1,10 +1,12 @@
 #include "player.h"
+#include "objects.h"
 #include "raymath.h"
 #include <cmath>
+#include <cstdio>
 #include <float.h>
 
 bool Player::isValidItemId(int itemId) {
-    return itemId >= 0 && itemId < Player::MAX_INVENTORY_SIZE;
+    return itemId > 0; // Objects instance ids start at 1; 0 = empty inventory slot
 }
 
 void Player::UpdateAABB() {
@@ -43,23 +45,40 @@ void Player::DrawArms(Camera3D camera) {
 }
 
 void Player::Stash(int itemId, bool canPickup) {
-    if (!isValidItemId(itemId)) return;
-    if (inventory.items[itemId] > 0) {
-        inventory.items[itemId]--;
-        if (canPickup) {
-            return; // TODO
+    if (!canPickup || !isValidItemId(itemId)) return;
+    for (int i = 0; i < MAX_INVENTORY_SIZE; i++)
+        if (inventory.items[i] == itemId) return; // already stashed
+
+    for (int i = 0; i < MAX_INVENTORY_SIZE; i++) {
+        if (inventory.items[i] == 0) {
+            inventory.items[i] = itemId;
+            inventory.count++;
+            break;
         }
     }
+    Objects::Despawn(itemId);
 }
 
 void Player::Unstash(int itemId, bool canDrop) {
-    if (!isValidItemId(itemId)) return;
-    if (inventory.items[itemId] < 32) {
-        inventory.items[itemId]++;
-        if (canDrop) {
-            return; // TODO
+    if (!canDrop || !isValidItemId(itemId)) return;
+
+    bool found = false;
+    for (int i = 0; i < MAX_INVENTORY_SIZE; i++) {
+        if (inventory.items[i] == itemId) {
+            inventory.items[i] = 0;
+            inventory.count--;
+            found = true;
+            break;
         }
     }
+    if (!found) return;
+
+    Vector3 scale = {1.0f, 1.0f, 1.0f};
+    const char *scaleAttr = Objects::GetAttr(itemId, "scale");
+    if (scaleAttr) sscanf(scaleAttr, "%f,%f,%f", &scale.x, &scale.y, &scale.z);
+
+    Vector3 dropPos = Vector3Add(position, Vector3Scale(forward, 3.0f));
+    Objects::Spawn(itemId, dropPos, scale, 0.0f);
 }
 
 void Player::Hold(int itemId) {

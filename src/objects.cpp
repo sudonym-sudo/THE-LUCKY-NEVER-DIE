@@ -175,6 +175,19 @@ void Objects::SetAttr(int id, const char *key, const char *value)
     }
 }
 
+const char *Objects::GetAttr(int id, const char *key)
+{
+    for (int i = 0; i < registry.instanceCount; i++) {
+        if (registry.instances[i].id != id) continue;
+        for (int j = 0; j < registry.instances[i].attrCount; j++) {
+            if (strcmp(registry.instances[i].attrs[j].key, key) == 0)
+                return registry.instances[i].attrs[j].value;
+        }
+        return nullptr;
+    }
+    return nullptr;
+}
+
 int Objects::Spawn(int id, Vector3 position, Vector3 scale, float rotation)
 {
     if (registry.bodyCount >= MAX_OBJECT_INSTANCES) return -1;
@@ -204,8 +217,23 @@ int Objects::Spawn(int id, Vector3 position, Vector3 scale, float rotation)
     body.rotation = rotation;
     body.UpdateAABB();
     body.ExtractTriangles(registry);
+    body.instanceId = id;
 
     return registry.bodyCount++;
+}
+
+
+bool Objects::Despawn(int id)
+{
+    for (int i = 0; i < registry.bodyCount; i++) {
+        if (registry.bodies[i].instanceId == id) {
+            UnloadModel(registry.bodies[i].model);
+            registry.bodies[i] = registry.bodies[registry.bodyCount - 1];
+            registry.bodyCount--;
+            return true;
+        }
+    }
+    return false;
 }
 
 void Objects::UnloadObjectInstances()

@@ -1,4 +1,5 @@
 #include "input.h"
+#include "objects.h"
 #include "raymath.h"
 
 Vector2 getKeyVector() {
@@ -37,5 +38,19 @@ void inputProcess(float deltaTime, Player &player, Camera3D &camera) {
 
 	if (IsKeyPressed(KEY_SPACE)) {
 		player.movement.bufferTimer = player.movement.bufferTime;
+	}
+
+	if (IsKeyPressed(KEY_E)) {
+		int count = 0;
+		const int *ids = Objects::Get("type", "weapon", &count);
+		if (count > 0) {
+			int itemId = ids[0];
+			bool stashed = false;
+			for (int i = 0; i < Player::MAX_INVENTORY_SIZE; i++) {
+				if (player.inventory.items[i] == itemId) { stashed = true; break; }
+			}
+			if (stashed) player.Unstash(itemId, true);
+			else player.Stash(itemId, true);
+		}
 	}
 }

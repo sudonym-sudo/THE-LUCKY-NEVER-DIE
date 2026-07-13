@@ -59,7 +59,6 @@ float getBoost() {
     return boost;
 }
 
-
 static const float SLOPE_FLOOR_Y = 0.85f;
 static const float SLOPE_WALL_Y  = 0.30f;
 
