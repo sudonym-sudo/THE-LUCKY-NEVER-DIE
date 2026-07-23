@@ -3,6 +3,7 @@
 
 #include "game.h"
 #include "raylib.h"
+#include <streambuf>
 
 
 class Player {
@@ -38,24 +39,31 @@ public:
 
     struct Visuals {
         Model armModel;
+        Model heldModel;
         struct ArmConfig {
             float dist = 0.8f;
             float height = -2.8f;
             float width = 4.5f;
         } armConfig;
+        struct HeldModelConfig {
+            float dist = 0.6f;
+            float height = -2.5f;
+            float side = 1.0f;
+        } heldModelConfig;
     } visual;
 
     Vector3 position = {0.0f, 0.0f, 0.0f};
+    Vector3 handGripPosition = {0.0f, 0.0f, 0.0f};
     Vector3 forward = {0.0f, 0.0f, 0.0f};
     float yaw = 0.0f;
     float pitch = 0.0f;
 
 private:
-    bool isValidItemId(int itemId);
+    bool isValid(int itemId);
+    void UpdateModelOrientation(Model *model, Camera3D camera);
 
 public:
     void UpdateAABB();
-    void UpdateModelOrientation(Model *model, Camera3D camera);
     void DrawArms(Camera3D camera);
     void Stash(int itemId, bool canPickup);
     void Unstash(int itemId, bool canDrop);

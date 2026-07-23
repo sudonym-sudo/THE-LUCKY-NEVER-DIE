@@ -5,9 +5,7 @@
 #include <cstdio>
 #include <float.h>
 
-bool Player::isValidItemId(int itemId) {
-    return itemId > 0; // Objects instance ids start at 1; 0 = empty inventory slot
-}
+inline bool Player::isValid(int itemId) { return itemId > 0; }
 
 void Player::UpdateAABB() {
     float bodyHeight = collision.height + 0.5f;
@@ -31,21 +29,32 @@ void Player::DrawArms(Camera3D camera) {
     forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
     Vector3 right = Vector3Normalize(Vector3CrossProduct((Vector3){0, 1, 0}, forward));
 
-    Vector3 baseOffset = Vector3Add(Vector3Scale(forward, visual.armConfig.dist),
-        Vector3Scale((Vector3){0, 1, 0}, visual.armConfig.height));
-    Vector3 leftArmPos = Vector3Add(camera.position,
-        Vector3Add(baseOffset, Vector3Scale(right, -visual.armConfig.width)));
-    Vector3 rightArmPos = Vector3Add(camera.position,
-        Vector3Add(baseOffset, Vector3Scale(right, visual.armConfig.width)));
+    Vector3 baseOffset = Vector3Add(Vector3Scale(forward, visual.armConfig.dist), Vector3Scale((Vector3){0, 1, 0}, visual.armConfig.height));
+    Vector3 leftArmPos = Vector3Add(camera.position, Vector3Add(baseOffset, Vector3Scale(right, -visual.armConfig.width)));
+    Vector3 rightArmPos = Vector3Add(camera.position, Vector3Add(baseOffset, Vector3Scale(right, visual.armConfig.width)));
+
+    Vector3 handGripOffset = Vector3Scale(forward, visual.heldModelConfig.dist);
+    handGripPosition = Vector3Add(camera.position, Vector3Add(baseOffset, handGripOffset));
 
     UpdateModelOrientation(&visual.armModel, camera);
 
+    // ARMS
+
     DrawModelEx(visual.armModel, leftArmPos, (Vector3){0, 1, 0}, 0.0f, (Vector3){1, 1, 1}, RED);
     DrawModelEx(visual.armModel, rightArmPos, (Vector3){0, 1, 0}, 0.0f, (Vector3){1, 1, 1}, RED);
+
+    // HOLDING
+
+    if(inventory.hand == 0) return;
+
+    DrawModelEx(visual.heldModel, handGripPosition, (Vector3){0, 1, 0}, 0.0f, (Vector3){1, 1, 1}, RED);
+
+
 }
 
+
 void Player::Stash(int itemId, bool canPickup) {
-    if (!canPickup || !isValidItemId(itemId)) return;
+    if (!canPickup || !isValid(itemId)) return;
     for (int i = 0; i < MAX_INVENTORY_SIZE; i++)
         if (inventory.items[i] == itemId) return; // already stashed
 
@@ -60,7 +69,7 @@ void Player::Stash(int itemId, bool canPickup) {
 }
 
 void Player::Unstash(int itemId, bool canDrop) {
-    if (!canDrop || !isValidItemId(itemId)) return;
+    if (!canDrop || !isValid(itemId)) return;
 
     bool found = false;
     for (int i = 0; i < MAX_INVENTORY_SIZE; i++) {
@@ -74,7 +83,7 @@ void Player::Unstash(int itemId, bool canDrop) {
     if (!found) return;
 
     Vector3 scale = {1.0f, 1.0f, 1.0f};
-    const char *scaleAttr = Objects::GetAttr(itemId, "scale");
+    const char *scaleAttr = Objects::Get(itemId, "scale");
     if (scaleAttr) sscanf(scaleAttr, "%f,%f,%f", &scale.x, &scale.y, &scale.z);
 
     Vector3 dropPos = Vector3Add(position, Vector3Scale(forward, 3.0f));
@@ -82,6 +91,17 @@ void Player::Unstash(int itemId, bool canDrop) {
 }
 
 void Player::Hold(int itemId) {
-    if (!isValidItemId(itemId)) return;
+    if (itemId == -1) {
+        if (inventory.hand != 0) {
+            UnloadModel(visual.heldModel);
+            inventory.hand = 0;
+        }
+        return;
+    }
+
+    if (!isValid(itemId) || inventory.hand == itemId) return;
     inventory.hand = itemId;
+
+    const char *modelPath = Objects::Get(inventory.hand, "model");
+    if (modelPath) visual.heldModel = LoadModel(modelPath);
 }

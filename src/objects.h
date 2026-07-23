@@ -51,10 +51,10 @@ namespace Objects {
 
     void InitCache();
     int  Create(const char *name);
-    const int *Get(const char *key, const char *value, int *outCount);
-    bool HasType(int id, const char *type);
-    void SetAttr(int id, const char *key, const char *value);
-    const char *GetAttr(int id, const char *key);
+    const int *Find(const char *key, const char *value, int *outCount);
+    bool Has(int id, const char *type);
+    void Set(int id, const char *key, const char *value);
+    const char *Get(int id, const char *key);
     int  Spawn(int id, Vector3 position = {0, 0, 0}, Vector3 scale = {1, 1, 1}, float rotation = 0);
     bool Despawn(int id);
     void UnloadObjectInstances();

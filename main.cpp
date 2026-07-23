@@ -76,7 +76,7 @@ void init() {
 	// dbg.Log("%d cat(s) spawned [LOG]", 5);
 
 	int deagle = Objects::Create("Deagle");
-	Objects::SetAttr(deagle, "ammo", "24");
+	Objects::Set(deagle, "ammo", "24");
 	Objects::Spawn(deagle, {2.0f, 0.5f, 0.0f}, {0.4f, 0.4f, 0.4f});
 	dbg.Log("spawned Deagle (id=%d) [LOG]", deagle);
 }

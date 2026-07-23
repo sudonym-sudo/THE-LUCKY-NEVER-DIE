@@ -42,7 +42,7 @@ void inputProcess(float deltaTime, Player &player, Camera3D &camera) {
 
 	if (IsKeyPressed(KEY_E)) {
 		int count = 0;
-		const int *ids = Objects::Get("type", "weapon", &count);
+		const int *ids = Objects::Find("type", "weapon", &count);
 		if (count > 0) {
 			int itemId = ids[0];
 			bool stashed = false;
@@ -52,5 +52,18 @@ void inputProcess(float deltaTime, Player &player, Camera3D &camera) {
 			if (stashed) player.Unstash(itemId, true);
 			else player.Stash(itemId, true);
 		}
+	}
+	if (IsKeyPressed(KEY_Q)) {
+	    // hold item
+		int count = 0;
+		const int *ids = Objects::Find("type", "weapon", &count);
+		if (count > 0) {
+			int itemId = ids[0];
+			player.Hold(itemId);
+		}
+	}
+
+	if (IsKeyPressed(KEY_R)) {
+		player.Hold(-1);
 	}
 }

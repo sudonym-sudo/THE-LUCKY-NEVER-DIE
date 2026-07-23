@@ -161,7 +161,7 @@ int physicsProcess(float deltaTime, Player &player, World &world, Camera3D &came
 
 	if (player.collision.grounded) {
 		player.collision.groundTimer += deltaTime;
-		if (player.collision.groundTimer > 0.5f) {
+		if (player.collision.groundTimer > 1.5f) {
 			player.movement.maxSpeed = player.movement.speed;
 		}
 	} else {

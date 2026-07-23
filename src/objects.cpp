@@ -125,7 +125,7 @@ int Objects::Create(const char *name)
     return -1;
 }
 
-const int *Objects::Get(const char *key, const char *value, int *outCount)
+const int *Objects::Find(const char *key, const char *value, int *outCount)
 {
     static int results[MAX_INSTANCES];
     int count = 0;
@@ -142,7 +142,7 @@ const int *Objects::Get(const char *key, const char *value, int *outCount)
     return count > 0 ? results : nullptr;
 }
 
-bool Objects::HasType(int id, const char *type)
+bool Objects::Has(int id, const char *type)
 {
     for (int i = 0; i < registry.instanceCount; i++) {
         if (registry.instances[i].id != id) continue;
@@ -156,7 +156,7 @@ bool Objects::HasType(int id, const char *type)
     return false;
 }
 
-void Objects::SetAttr(int id, const char *key, const char *value)
+void Objects::Set(int id, const char *key, const char *value)
 {
     for (int i = 0; i < registry.instanceCount; i++) {
         if (registry.instances[i].id != id) continue;
@@ -175,7 +175,7 @@ void Objects::SetAttr(int id, const char *key, const char *value)
     }
 }
 
-const char *Objects::GetAttr(int id, const char *key)
+const char *Objects::Get(int id, const char *key)
 {
     for (int i = 0; i < registry.instanceCount; i++) {
         if (registry.instances[i].id != id) continue;
@@ -236,17 +236,12 @@ bool Objects::Despawn(int id)
     return false;
 }
 
-void Objects::UnloadObjectInstances()
+void Objects::UnloadAll()
 {
     for (int i = 0; i < registry.bodyCount; i++)
         UnloadModel(registry.bodies[i].model);
     registry.bodyCount = 0;
     registry.trianglePoolCount = 0;
-}
-
-void Objects::UnloadAll()
-{
-    UnloadObjectInstances();
     templateCount = 0;
     registry.instanceCount = 0;
     nextId = 1;
