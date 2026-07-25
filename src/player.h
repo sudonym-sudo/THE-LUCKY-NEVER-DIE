@@ -40,6 +40,7 @@ public:
     struct Visuals {
         Model armModel;
         Model heldModel;
+        Vector3 heldModelScale = {1.0f, 1.0f, 1.0f};
         struct ArmConfig {
             float dist = 0.8f;
             float height = -2.8f;

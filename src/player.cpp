@@ -13,6 +13,7 @@ void Player::UpdateAABB() {
     collision.aabb.max = (Vector3){position.x + collision.width / 2, position.y + bodyHeight, position.z + collision.depth / 2};
 }
 
+// Expects the mesh authored +Z forward / +Y up, pivoted where the hand holds it.
 void Player::UpdateModelOrientation(Model *model, Camera3D camera) {
     Vector3 dir = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
 
@@ -47,7 +48,9 @@ void Player::DrawArms(Camera3D camera) {
 
     if(inventory.hand == 0) return;
 
-    DrawModelEx(visual.heldModel, handGripPosition, (Vector3){0, 1, 0}, 0.0f, (Vector3){1, 1, 1}, RED);
+    UpdateModelOrientation(&visual.heldModel, camera);
+
+    DrawModelEx(visual.heldModel, handGripPosition, (Vector3){0, 1, 0}, 0.0f, visual.heldModelScale, RED);
 
 
 }
@@ -100,8 +103,14 @@ void Player::Hold(int itemId) {
     }
 
     if (!isValid(itemId) || inventory.hand == itemId) return;
-    inventory.hand = itemId;
 
-    const char *modelPath = Objects::Get(inventory.hand, "model");
-    if (modelPath) visual.heldModel = LoadModel(modelPath);
+    const char *modelPath = Objects::Get(itemId, "model");
+    if (!modelPath) return; 
+
+    inventory.hand = itemId;
+    visual.heldModel = LoadModel(modelPath);
+
+    visual.heldModelScale = (Vector3){1.0f, 1.0f, 1.0f};
+    const char *scaleAttr = Objects::Get(itemId, "scale");
+    if (scaleAttr) sscanf(scaleAttr, "%f,%f,%f", &visual.heldModelScale.x, &visual.heldModelScale.y, &visual.heldModelScale.z);
 }
