@@ -13,7 +13,6 @@ void Player::UpdateAABB() {
     collision.aabb.max = (Vector3){position.x + collision.width / 2, position.y + bodyHeight, position.z + collision.depth / 2};
 }
 
-// Expects the mesh authored +Z forward / +Y up, pivoted where the hand holds it.
 void Player::UpdateModelOrientation(Model *model, Camera3D camera) {
     Vector3 dir = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
 
@@ -30,8 +29,8 @@ void Player::DrawArms(Camera3D camera) {
     forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
     Vector3 right = Vector3Normalize(Vector3CrossProduct((Vector3){0, 1, 0}, forward));
 
-    Vector3 baseOffset = Vector3Add(Vector3Scale(forward, visual.armConfig.dist), Vector3Scale((Vector3){0, 1, 0}, visual.armConfig.height));
-    Vector3 leftArmPos = Vector3Add(camera.position, Vector3Add(baseOffset, Vector3Scale(right, -visual.armConfig.width)));
+    Vector3 baseOffset  = Vector3Add(Vector3Scale(forward, visual.armConfig.dist), Vector3Scale((Vector3){0, 1, 0}, visual.armConfig.height));
+    Vector3 leftArmPos  = Vector3Add(camera.position, Vector3Add(baseOffset, Vector3Scale(right, -visual.armConfig.width)));
     Vector3 rightArmPos = Vector3Add(camera.position, Vector3Add(baseOffset, Vector3Scale(right, visual.armConfig.width)));
 
     Vector3 handGripOffset = Vector3Scale(forward, visual.heldModelConfig.dist);
@@ -51,10 +50,7 @@ void Player::DrawArms(Camera3D camera) {
     UpdateModelOrientation(&visual.heldModel, camera);
 
     DrawModelEx(visual.heldModel, handGripPosition, (Vector3){0, 1, 0}, 0.0f, visual.heldModelScale, RED);
-
-
 }
-
 
 void Player::Stash(int itemId, bool canPickup) {
     if (!canPickup || !isValid(itemId)) return;

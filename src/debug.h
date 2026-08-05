@@ -5,18 +5,18 @@
 #include "raylib.h"
 
 class Debug {
-	static const int MAX_LOGS = 20;
-	static const int MSG_LEN = 128;
+    static const int MAX_LOGS = 20;
+    static const int MSG_LEN = 128;
 
-	char messages[MAX_LOGS][MSG_LEN];
-	int count;
+    char messages[MAX_LOGS][MSG_LEN];
+    int count;
 
 public:
-	Debug();
+    Debug();
 
-	void Log(const char *fmt, ...);
-	void Clear();
-	void Draw(Font font);
+    void Log(const char *fmt, ...);
+    void Clear();
+    void Draw(Font font);
 };
 
 #endif
